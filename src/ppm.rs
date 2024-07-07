@@ -26,12 +26,13 @@ impl Ppm {
                     row += 1;
                     println!("Output {}/{}", row, self.height);
                     format!(
-                    "{}\n",
-                    x.iter()
-                        .map(|c| c.to_string())
-                        .collect::<Vec<String>>()
-                        .join(" ")
-                )})
+                        "{}\n",
+                        x.iter()
+                            .map(|c| c.to_string())
+                            .collect::<Vec<String>>()
+                            .join(" ")
+                    )
+                })
                 .collect::<Vec<String>>()
                 .join("")
         );
