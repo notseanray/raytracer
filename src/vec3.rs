@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Shr, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub},
 };
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -8,14 +8,22 @@ pub struct Vec3<F>([F; 3]);
 
 pub type P3<F> = Vec3<F>;
 
+#[macro_export]
+macro_rules! f32_len {
+    ($v:expr) => {{
+        let mut i: i32 = $v.to_bits() as i32;
+        i = 0x1fbd3f7d_i32.wrapping_add(i >> 1);
+        let y = f32::from_bits(i as u32);
+        (((y * y) + $v) / (y)) * 0.5
+    }};
+}
+
 impl<
         F: std::marker::Copy
             + Add<Output = F>
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Vec3<F>
 {
@@ -39,14 +47,6 @@ impl<
         self.0[2]
     }
 
-    // https://suraj.sh/fast-square-root-approximation
-    #[inline(always)]
-    pub fn length(&self) -> F {
-        let a = self.length_squared();
-        let x = <f64 as Into<F>>::into(0x1fbd3f7d as f64) + (a >> 1);
-        (((x * x) + a) / x) * <f64 as Into<F>>::into(0.5)
-    }
-
     #[inline(always)]
     pub fn length_squared(&self) -> F {
         self.x() * self.x() + self.y() * self.y() + self.z() * self.z()
@@ -66,11 +66,33 @@ impl<
         )
     }
 
+    // https://suraj.sh/fast-square-root-approximation
+    // magic number might only work for f32
+    // have to wait for this https://github.com/rust-lang/rfcs/blob/master/text/1210-impl-specialization.md
     #[inline(always)]
-    pub fn unit_len(self) -> Self {
+    pub fn length(self) -> F {
+        unimplemented!()
+    }
+
+    #[inline(always)]
+    pub fn unit_vec(self) -> Self {
         self / self.length()
     }
 }
+
+/*
+impl Vec3<f32> {
+    #[inline(always)]
+    pub fn length(&self) -> f32 {
+        unimplemented!()
+        /*
+        let a = self.length_squared();
+        let x: f64 = <f64 as Into<F>>::into(0x1fbd3f7d as f64) + (a as f64 >> 1);
+        (((x * x) + a) / x) * <f64 as Into<F>>::into(0.5)
+        */
+    }
+}
+*/
 
 impl<
         F: std::marker::Copy
@@ -78,8 +100,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Display for Vec3<F>
 {
@@ -94,8 +114,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Neg for Vec3<F>
 {
@@ -119,8 +137,6 @@ impl<
             + Sub<Output = F>
             + std::ops::Mul<Output = F>
             + std::ops::Div<Output = F>
-            + std::ops::Shr<i32, Output = F>
-            + std::convert::From<f64>
             + Display,
     > AddAssign for Vec3<F>
 {
@@ -135,8 +151,6 @@ impl<
             + Sub<Output = F>
             + std::ops::Mul<Output = F>
             + std::ops::Div<Output = F>
-            + std::ops::Shr<i32, Output = F>
-            + std::convert::From<f64>
             + Display,
     > Add for Vec3<F>
 {
@@ -152,8 +166,6 @@ impl<
             + Sub<Output = F>
             + std::ops::Mul<Output = F>
             + std::ops::Div<Output = F>
-            + std::ops::Shr<i32, Output = F>
-            + std::convert::From<f64>
             + Display,
     > Sub for Vec3<F>
 {
@@ -169,8 +181,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > MulAssign for Vec3<F>
 {
@@ -185,8 +195,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Mul for Vec3<F>
 {
@@ -203,8 +211,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Mul<F> for Vec3<F>
 {
@@ -220,8 +226,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > Div<F> for Vec3<F>
 {
@@ -237,8 +241,6 @@ impl<
             + Sub<Output = F>
             + Mul<Output = F>
             + Div<Output = F>
-            + Shr<i32, Output = F>
-            + From<f64>
             + Display,
     > DivAssign for Vec3<F>
 {

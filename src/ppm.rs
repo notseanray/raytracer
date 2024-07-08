@@ -5,7 +5,7 @@ use std::{
 
 // P3
 // TODO generic
-struct Ppm {
+pub struct Ppm {
     width: usize,
     height: usize,
     max_color_value: u8,
@@ -13,6 +13,15 @@ struct Ppm {
 }
 
 impl Ppm {
+    pub fn new(width: usize, height: usize, max_color_value: u8, data: &[u8]) -> Self {
+        Ppm {
+            width,
+            height,
+            max_color_value,
+            data: data.to_vec(),
+        }
+    }
+
     pub fn write(self, filename: &str) -> Result<()> {
         let mut row = 0;
         let header = format!(
