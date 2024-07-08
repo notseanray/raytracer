@@ -1,6 +1,6 @@
 use crate::{vec3::Vec3, write_color, HitRecord, Hittable, HittableList, Interval, Ppm, Ray};
 
-struct Camera {
+pub struct Camera {
     aspect_ratio: f32,
     image_width: f32,
     image_height: f32,
@@ -8,6 +8,21 @@ struct Camera {
     pixel00_loc: Vec3<f32>,
     pixel_delta_u: Vec3<f32>,
     pixel_delta_v: Vec3<f32>,
+}
+
+macro_rules! f32_len {
+    ($v:expr) => {{
+        let mut i: i32 = $v.to_bits() as i32;
+        i = 0x1fbd3f7d_i32.wrapping_add(i >> 1);
+        let y = f32::from_bits(i as u32);
+        (((y * y) + $v) / (y)) * 0.5
+    }};
+}
+
+macro_rules! unit_v {
+    ($v:expr) => {
+        $v / f32_len!($v.length_squared())
+    };
 }
 
 impl Camera {
