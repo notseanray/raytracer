@@ -8,16 +8,6 @@ pub struct Vec3<F>([F; 3]);
 
 pub type P3<F> = Vec3<F>;
 
-#[macro_export]
-macro_rules! f32_len {
-    ($v:expr) => {{
-        let mut i: i32 = $v.to_bits() as i32;
-        i = 0x1fbd3f7d_i32.wrapping_add(i >> 1);
-        let y = f32::from_bits(i as u32);
-        (((y * y) + $v) / (y)) * 0.5
-    }};
-}
-
 impl<
         F: std::marker::Copy
             + Add<Output = F>
