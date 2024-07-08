@@ -13,10 +13,9 @@ fn hit_sphere(center: Vec3<f32>, radius: f32, r: &Ray<f32>) -> bool {
     let a = r.direction().dot(r.direction());
     let b = r.direction().dot(oc) * -2.0;
     let c = oc.dot(oc) - radius * radius;
-    let discriminant = b*b - 4.0 * a * c;
+    let discriminant = b * b - 4.0 * a * c;
     discriminant >= 0.0
 }
-
 
 fn ray_color(r: Ray<f32>) -> Vec3<f32> {
     if hit_sphere(Vec3::new(0.0, 0.0, -1.0), 0.5, &r) {
