@@ -1,13 +1,16 @@
-use crate::{vec3::Vec3, write_color, HitRecord, Hittable, HittableList, Interval, Ppm, Ray};
+use crate::{
+    random_double, vec3::Vec3, write_color, HitRecord, Hittable, HittableList, Interval, Ppm, Ray,
+};
 
 pub struct Camera {
-    aspect_ratio: f32,
     image_width: f32,
     image_height: f32,
     center: Vec3<f32>,
     pixel00_loc: Vec3<f32>,
     pixel_delta_u: Vec3<f32>,
     pixel_delta_v: Vec3<f32>,
+    samples_per_pixel: f32,
+    pixel_samples_scale: f32,
 }
 
 macro_rules! f32_len {
@@ -53,14 +56,33 @@ impl Camera {
         let viewport_upper_left =
             center - Vec3::<f32>::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
+        let samples_per_pixel = 10.0;
+        let pixel_samples_scale = 1.0 / samples_per_pixel;
         Self {
-            aspect_ratio,
             image_width,
             image_height,
             center,
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            samples_per_pixel,
+            pixel_samples_scale,
+        }
+    }
+
+    fn sample_square() -> Vec3<f32> {
+        Vec3::new(random_double() - 0.5, random_double() - 0.5, 0.0)
+    }
+
+    fn get_ray(&self, width: f32, height: f32) -> Ray<f32> {
+        let offset = Self::sample_square();
+        let pixel_sample = self.pixel00_loc
+            + (self.pixel_delta_u * (width + offset.x()))
+            + (self.pixel_delta_v * (height + offset.y()));
+        let ray_direction = pixel_sample - self.center;
+        Ray {
+            origin: self.center,
+            direction: ray_direction,
         }
     }
 
@@ -68,14 +90,16 @@ impl Camera {
         let pixels: Vec<(f32, f32, f32)> = (0..self.image_height as usize
             * self.image_width as usize)
             .map(|i| {
-                let height = ((i as f32) / self.image_width).round();
-                let width = ((i as f32) % self.image_width).round();
-                let pixel_center =
-                    self.pixel00_loc + (self.pixel_delta_u * width) + (self.pixel_delta_v * height);
-                let ray_direction = pixel_center - self.center;
-                let r = Ray::new(self.center, ray_direction);
-                let pixel_color = Self::ray_color(&r, world);
-                (pixel_color.x(), pixel_color.y(), pixel_color.z())
+                let height = ((i as f32) / self.image_width) as u32 as f32;
+                let width = ((i as f32) % self.image_width) as u32 as f32;
+                //let r = Ray::new(self.center, ray_direction);
+                let mut color = Vec3::new(0.0, 0.0, 0.0);
+                for _ in 0..self.samples_per_pixel as usize {
+                    let r = self.get_ray(width, height);
+                    color += Self::ray_color(&r, world);
+                }
+                color = color * self.pixel_samples_scale;
+                (color.x(), color.y(), color.z())
             })
             .collect();
         let ppm_writer = Ppm::new(

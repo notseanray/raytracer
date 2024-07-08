@@ -1,12 +1,12 @@
 use crate::vec3::Vec3;
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 pub struct Ray<F> {
-    origin: Vec3<F>,
-    direction: Vec3<F>,
+    pub origin: Vec3<F>,
+    pub direction: Vec3<F>,
 }
 
 impl<

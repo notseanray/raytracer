@@ -1,5 +1,6 @@
 #![feature(strict_provenance)]
 mod color;
+use rand::Rng;
 use std::f32::consts::PI;
 
 use color::*;
@@ -96,6 +97,20 @@ struct HittableList {
 
 pub fn degrees_to_radians(degrees: f32) -> f32 {
     degrees * PI / 180.0
+}
+
+#[inline(always)]
+pub fn random_double() -> f32 {
+    let mut rng = rand::thread_rng();
+    let random_number: f32 = rng.gen();
+    random_number
+}
+
+#[inline(always)]
+pub fn random_double_lim(min: f32, max: f32) -> f32 {
+    let mut rng = rand::thread_rng();
+    let random_number: f32 = rng.gen_range(min..max);
+    random_number
 }
 
 impl HittableList {
