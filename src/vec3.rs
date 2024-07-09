@@ -3,10 +3,73 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub},
 };
 
+use crate::random_double_lim;
+
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Vec3<F>([F; 3]);
 
 pub type P3<F> = Vec3<F>;
+
+macro_rules! f32_len {
+    ($v:expr) => {{
+        let mut i: i32 = $v.to_bits() as i32;
+        i = 0x1fbd3f7d_i32.wrapping_add(i >> 1);
+        let y = f32::from_bits(i as u32);
+        (((y * y) + $v) / (y)) * 0.5
+    }};
+}
+
+macro_rules! unit_v {
+    ($v:expr) => {
+        $v / f32_len!($v.length_squared())
+    };
+}
+
+macro_rules! random_vec3 {
+    () => {
+        Vec3::<f32>::new(random_double(), random_double(), random_double())
+    };
+}
+
+macro_rules! random_vec3_lim {
+    ($min:expr, $max:expr) => {
+        Vec3::<f32>::new(
+            random_double_lim($min, $max),
+            random_double_lim($min, $max),
+            random_double_lim($min, $max),
+        )
+    };
+}
+
+#[inline(always)]
+pub fn reflect(v: Vec3<f32>, n: Vec3<f32>) -> Vec3<f32> {
+    v - n * v.dot(n) * 2.0
+}
+
+#[inline(always)]
+pub fn random_in_unit_sphere() -> Vec3<f32> {
+    loop {
+        let p = random_vec3_lim!(-1.0, 1.0);
+        if p.length_squared() < 1.0 {
+            return p;
+        }
+    }
+}
+
+#[inline(always)]
+pub fn random_unit_vec() -> Vec3<f32> {
+    unit_v!(random_in_unit_sphere())
+}
+
+#[inline(always)]
+pub fn random_on_hemisphere(normal: Vec3<f32>) -> Vec3<f32> {
+    let on_unit_sphere = random_unit_vec();
+    if on_unit_sphere.dot(normal) > 0.0 {
+        on_unit_sphere
+    } else {
+        -on_unit_sphere
+    }
+}
 
 impl<
         F: std::marker::Copy

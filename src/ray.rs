@@ -4,6 +4,7 @@ use std::{
     ops::{Add, Div, Mul, Sub},
 };
 
+#[derive(Default, Clone, Copy)]
 pub struct Ray<F> {
     pub origin: Vec3<F>,
     pub direction: Vec3<F>,

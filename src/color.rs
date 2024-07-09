@@ -1,10 +1,18 @@
-use crate::Interval;
+use crate::{f32_len, Interval};
+
+#[inline(always)]
+fn linear_to_gamma(linear_component: f32) -> f32 {
+    if linear_component > 0.0 {
+        return f32_len!(linear_component);
+    }
+    0.0
+}
 
 #[inline(always)]
 pub fn write_color(pixel_color: (f32, f32, f32)) -> Vec<u8> {
-    let r = pixel_color.0;
-    let g = pixel_color.1;
-    let b = pixel_color.2;
+    let r = linear_to_gamma(pixel_color.0);
+    let g = linear_to_gamma(pixel_color.1);
+    let b = linear_to_gamma(pixel_color.2);
 
     let intensity = Interval {
         min: 0.000,

@@ -1,5 +1,7 @@
 use crate::{
-    random_double, vec3::Vec3, write_color, HitRecord, Hittable, HittableList, Interval, Ppm, Ray,
+    random_double,
+    vec3::{random_on_hemisphere, random_unit_vec, Vec3},
+    write_color, HitRecord, Hittable, HittableList, Interval, Ppm, Ray,
 };
 
 pub struct Camera {
@@ -11,6 +13,7 @@ pub struct Camera {
     pixel_delta_v: Vec3<f32>,
     samples_per_pixel: f32,
     pixel_samples_scale: f32,
+    max_depth: usize,
 }
 
 macro_rules! f32_len {
@@ -56,8 +59,9 @@ impl Camera {
         let viewport_upper_left =
             center - Vec3::<f32>::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
-        let samples_per_pixel = 10.0;
+        let samples_per_pixel = 100.0;
         let pixel_samples_scale = 1.0 / samples_per_pixel;
+        let max_depth = 50;
         Self {
             image_width,
             image_height,
@@ -67,6 +71,7 @@ impl Camera {
             pixel_delta_v,
             samples_per_pixel,
             pixel_samples_scale,
+            max_depth,
         }
     }
 
@@ -96,7 +101,7 @@ impl Camera {
                 let mut color = Vec3::new(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel as usize {
                     let r = self.get_ray(width, height);
-                    color += Self::ray_color(&r, world);
+                    color += Self::ray_color(&r, self.max_depth, world);
                 }
                 color = color * self.pixel_samples_scale;
                 (color.x(), color.y(), color.z())
@@ -114,17 +119,27 @@ impl Camera {
         ppm_writer.write("out.ppm").unwrap();
     }
 
-    fn ray_color(r: &Ray<f32>, world: &mut HittableList) -> Vec3<f32> {
+    fn ray_color(r: &Ray<f32>, depth: usize, world: &mut HittableList) -> Vec3<f32> {
+        if depth == 0 {
+            return Vec3::new(0.0, 0.0, 0.0);
+        }
         let mut rec = HitRecord::default();
         if world.hit(
             r,
             Interval {
-                min: 0.0,
+                min: 0.025,
                 max: f32::INFINITY,
             },
             &mut rec,
         ) {
-            return (rec.normal + Vec3::new(1.0, 1.0, 1.0)) * 0.5;
+            let mut scattered = Ray::default();
+            let mut attenuation = Vec3::<f32>::default();
+            if let Some(mat) = &rec.material {
+                if mat.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                    return attenuation * Self::ray_color(&scattered, depth - 1, world);
+                }
+            }
+            return Vec3::new(0.0, 0.0, 0.0);
         }
 
         let unit_direction = unit_v!(r.direction());
