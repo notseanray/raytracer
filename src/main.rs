@@ -1,8 +1,8 @@
 #![feature(strict_provenance)]
 mod color;
 use rand::Rng;
-use std::rc::Rc;
 use std::f32::consts::PI;
+use std::rc::Rc;
 
 use color::*;
 mod ppm;
@@ -50,7 +50,13 @@ impl HitRecord {
 }
 
 trait Hittable {
-    fn hit(&self, r: &Ray<f32>, ray_t: Interval, rec: &mut HitRecord, material: Rc<Box<dyn Material>>) -> bool;
+    fn hit(
+        &self,
+        r: &Ray<f32>,
+        ray_t: Interval,
+        rec: &mut HitRecord,
+        material: Rc<Box<dyn Material>>,
+    ) -> bool;
     fn material(&self) -> Rc<Box<dyn Material>>;
 }
 
@@ -71,7 +77,13 @@ macro_rules! f32_len {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray<f32>, ray_t: Interval, rec: &mut HitRecord, material: Rc<Box<dyn Material>>) -> bool {
+    fn hit(
+        &self,
+        r: &Ray<f32>,
+        ray_t: Interval,
+        rec: &mut HitRecord,
+        material: Rc<Box<dyn Material>>,
+    ) -> bool {
         let oc = self.center - r.origin();
         let a = r.direction().length_squared();
         let h = r.direction().dot(oc);

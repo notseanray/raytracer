@@ -29,12 +29,12 @@ impl Lambertian {}
 
 impl Material for Lambertian {
     fn scatter(
-            &self,
-            _r_in: &Ray<f32>,
-            rec: &HitRecord,
-            attenuation: &mut Vec3<f32>,
-            scattered: &mut Ray<f32>,
-        ) -> bool {
+        &self,
+        _r_in: &Ray<f32>,
+        rec: &HitRecord,
+        attenuation: &mut Vec3<f32>,
+        scattered: &mut Ray<f32>,
+    ) -> bool {
         let mut direction = rec.normal + random_unit_vec();
         if near_zero_vec!(direction) {
             direction = rec.normal;
@@ -66,18 +66,18 @@ pub struct Metal {
     pub fuzz: f32,
 }
 
-impl Metal {
-}
+impl Metal {}
 
 impl Material for Metal {
     fn scatter(
-            &self,
-            r_in: &Ray<f32>,
-            rec: &HitRecord,
-            attenuation: &mut Vec3<f32>,
-            scattered: &mut Ray<f32>,
-        ) -> bool {
-        let reflected = unit_v!(reflect(r_in.direction(), rec.normal)) + random_unit_vec() * self.fuzz;
+        &self,
+        r_in: &Ray<f32>,
+        rec: &HitRecord,
+        attenuation: &mut Vec3<f32>,
+        scattered: &mut Ray<f32>,
+    ) -> bool {
+        let reflected =
+            unit_v!(reflect(r_in.direction(), rec.normal)) + random_unit_vec() * self.fuzz;
         let scattered_r = Ray::new(rec.p, reflected);
         *scattered = scattered_r;
         *attenuation = self.attenuation;
